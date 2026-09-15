@@ -1,0 +1,10 @@
+node_modules/
+dist/
+Prihoda-AI-Air-Studio.html
+.netlify/
+.env
+.env.*
+*.log
+.DS_Store
+Thumbs.db
+deno.lock

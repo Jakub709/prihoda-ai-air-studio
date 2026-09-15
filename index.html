@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="cs">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Příhoda AI Air Studio</title>
+    <meta name="description" content="Koncept AI návrháře tkaninových vyústek Příhoda – 3D digitální dvojče, fyzikální model proudění, živá CFD simulace a nabídka na jedno kliknutí." />
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%23081018'/%3E%3Cpath d='M10 24c10-8 18 8 28 0s16 0 16 0' stroke='%2300a98e' stroke-width='5' fill='none' stroke-linecap='round'/%3E%3Cpath d='M10 36c10-8 18 8 28 0s16 0 16 0' stroke='%23007298' stroke-width='5' fill='none' stroke-linecap='round'/%3E%3Cpath d='M10 48c10-8 18 8 28 0s16 0 16 0' stroke='%2300a98e' stroke-width='5' fill='none' stroke-linecap='round' opacity='.5'/%3E%3C/svg%3E" />
+  </head>
+  <body>
+    <div id="app" class="app">
+      <!-- ===== horní lišta ===== -->
+      <header class="topbar">
+        <div class="brand">
+          <svg class="brand-mark" viewBox="0 0 40 40" aria-hidden="true">
+            <path d="M5 14c6-5 11 5 17 0s11 0 13 0" />
+            <path d="M5 21c6-5 11 5 17 0s11 0 13 0" />
+            <path d="M5 28c6-5 11 5 17 0s11 0 13 0" />
+          </svg>
+          <div class="brand-text">
+            <span class="brand-name">Příhoda</span>
+            <span class="brand-sub">AI Air Studio</span>
+          </div>
+        </div>
+        <div class="project-title">
+          <input id="projectName" type="text" spellcheck="false" aria-label="Název projektu" />
+          <span id="projectMeta" class="project-meta"></span>
+        </div>
+        <nav class="viewswitch" id="viewSwitch" role="tablist" aria-label="Pohled">
+          <button role="tab" data-view="design" class="active">3D návrh</button>
+          <button role="tab" data-view="cfd">Řez &amp; CFD</button>
+          <button role="tab" data-view="compare">Srovnání s plechem</button>
+          <button role="tab" data-view="analysis">Analýza</button>
+        </nav>
+        <div class="topbar-actions">
+          <button id="aiStatus" class="ai-pill" title="Nastavení AI">
+            <span class="dot"></span><span class="label">Offline režim</span>
+          </button>
+          <button id="btnDemo" class="btn ghost" title="Automatická prezentace (autopilot)">
+            <svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z" /></svg><span>Demo</span>
+          </button>
+          <button id="btnPresent" class="btn ghost icon-only" title="Prezentační režim (P)">
+            <svg viewBox="0 0 24 24"><path d="M4 5h16v11H4zM9 20h6M12 16v4" /></svg>
+          </button>
+          <button id="btnReport" class="btn primary" title="Technická nabídka a PDF">
+            <svg viewBox="0 0 24 24"><path d="M7 3h7l5 5v13H7zM14 3v5h5M10 13h6M10 17h6" /></svg><span>Nabídka</span>
+          </button>
+          <button id="btnSettings" class="btn ghost icon-only" title="Nastavení">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3.2" /><path d="M12 2.5v3M12 18.5v3M4.2 6.3l2.1 2.1M17.7 15.6l2.1 2.1M2.5 12h3M18.5 12h3M4.2 17.7l2.1-2.1M17.7 8.4l2.1-2.1" /></svg>
+          </button>
+        </div>
+      </header>
+
+      <main class="workspace">
+        <!-- ===== levý panel: zadání ===== -->
+        <aside class="panel left" id="leftPanel">
+          <section class="brief card">
+            <div class="card-head">
+              <h2><span class="spark">✦</span> AI zadání projektu</h2>
+              <span class="hint">text · hlas · foto půdorysu</span>
+            </div>
+            <div class="brief-box" id="briefDrop">
+              <textarea id="briefInput" rows="4" placeholder="Popište prostor a požadavky, např. „Pekárna 30 × 18 m, výška 5,5 m, chlazení 12 000 m³/h, přívod 10 °C, v hale 16 °C, nesmí táhnout na pracovníky…“"></textarea>
+              <div class="brief-attach" id="briefAttach" hidden></div>
+              <div class="brief-actions">
+                <button id="btnMic" class="btn ghost icon-only" title="Diktovat (čeština)">
+                  <svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3" /><path d="M5 11a7 7 0 0 0 14 0M12 18v3" /></svg>
+                </button>
+                <button id="btnAttach" class="btn ghost icon-only" title="Přiložit půdorys nebo fotografii">
+                  <svg viewBox="0 0 24 24"><path d="M20 12.5l-7.8 7.8a5 5 0 0 1-7.1-7.1l8.5-8.5a3.3 3.3 0 0 1 4.7 4.7l-8.5 8.5a1.7 1.7 0 0 1-2.4-2.4l7.8-7.8" /></svg>
+                </button>
+                <input id="fileInput" type="file" accept="image/*" hidden />
+                <button id="btnDesign" class="btn primary grow">
+                  <svg viewBox="0 0 24 24"><path d="M12 3l2.2 5.6L20 9.3l-4.4 3.9 1.3 5.8L12 16l-4.9 3 1.3-5.8L4 9.3l5.8-.7z" /></svg>
+                  <span>Navrhnout rozvod</span>
+                </button>
+              </div>
+            </div>
+            <div class="presets" id="presets" aria-label="Rychlé šablony"></div>
+          </section>
+          <section class="params" id="params"></section>
+        </aside>
+
+        <!-- ===== střed: pohledy ===== -->
+        <section class="center" id="center">
+          <div class="view view-design active" id="viewDesign">
+            <div class="viewport" id="viewport">
+              <div class="labels" id="labels3d"></div>
+              <div class="split-badges" id="splitBadges" hidden>
+                <div class="split-badge left"><b>Příhoda</b> tkaninový rozvod</div>
+                <div class="split-badge right"><b>Klasika</b> plech + vyústky</div>
+                <div class="split-line"></div>
+              </div>
+              <div class="vp-toolbar top-left" id="layerBar"></div>
+              <div class="vp-toolbar top-right" id="cameraBar"></div>
+              <div class="vp-legend" id="legend3d"></div>
+              <div class="vp-bottom-right" id="vpStatus"></div>
+              <div class="vp-probe" id="probe" hidden></div>
+              <div class="vp-progress" id="designProgress" hidden>
+                <div class="steps" id="progressSteps"></div>
+              </div>
+            </div>
+          </div>
+          <div class="view view-cfd" id="viewCfd"></div>
+          <div class="view view-analysis" id="viewAnalysis"></div>
+          <div class="compare-strip" id="compareStrip" hidden></div>
+        </section>
+
+        <!-- ===== pravý panel: výsledky + AI ===== -->
+        <aside class="panel right" id="rightPanel">
+          <div class="tabs" role="tablist">
+            <button role="tab" class="tab active" data-tab="results">Výsledky návrhu</button>
+            <button role="tab" class="tab" data-tab="chat">AI konzultant <span class="badge" id="chatBadge" hidden></span></button>
+          </div>
+          <div class="tab-body active" id="tabResults"></div>
+          <div class="tab-body chat" id="tabChat">
+            <div class="chat-log" id="chatLog"></div>
+            <div class="chat-suggest" id="chatSuggest"></div>
+            <form class="chat-input" id="chatForm">
+              <textarea id="chatInput" rows="1" placeholder="Zeptejte se nebo zadejte změnu…"></textarea>
+              <button type="button" id="chatMic" class="btn ghost icon-only" title="Diktovat">
+                <svg viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3" /><path d="M5 11a7 7 0 0 0 14 0M12 18v3" /></svg>
+              </button>
+              <button type="submit" class="btn primary icon-only" title="Odeslat">
+                <svg viewBox="0 0 24 24"><path d="M4 12l16-8-6 16-2.5-6.5z" /></svg>
+              </button>
+            </form>
+          </div>
+        </aside>
+      </main>
+
+      <footer class="statusbar" id="statusbar"></footer>
+    </div>
+
+    <div class="report-overlay" id="report" hidden></div>
+    <div class="modal-backdrop" id="modal" hidden></div>
+    <div class="toasts" id="toasts" aria-live="polite"></div>
+    <div class="splash" id="splash"></div>
+
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>

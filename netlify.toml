@@ -1,0 +1,22 @@
+# Nasazení na Netlify: statický web (vícesouborový build) + Edge Function /api/claude/* (netlify/edge-functions/claude.js).
+# Klíč k Claude API nastavte v Netlify: Project configuration → Environment variables → ANTHROPIC_API_KEY
+# (scope musí zahrnovat Functions). Volitelně AI_LIMIT_PER_IP_DAY, AI_LIMIT_PER_DAY, AI_ALLOWED_MODELS.
+
+[build]
+  command = "npm run build:web"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "22"
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    Permissions-Policy = "camera=(), geolocation=(), microphone=(self)"
