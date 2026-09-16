@@ -10,7 +10,7 @@ export const MODELS = [
 ];
 
 /** Serverová AI webu (zjištěno při startu z /api/claude/health). */
-export const server = { checked: false, available: false, models: [], limits: null };
+export const server = { checked: false, available: false, reason: null, models: [], limits: null };
 
 export async function detectServerAI() {
   if (/^https?:$/.test(location.protocol)) {
@@ -19,6 +19,7 @@ export async function detectServerAI() {
       if (r.ok && (r.headers.get('content-type') || '').includes('json')) {
         const j = await r.json();
         server.available = !!j.ai;
+        server.reason = j.reason || null;
         server.models = Array.isArray(j.models) ? j.models : [];
         server.limits = j.limits || null;
       }

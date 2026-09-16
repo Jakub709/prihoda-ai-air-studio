@@ -27,6 +27,7 @@ export function openSettings() {
       <div class="modal-body">
         <p>Aplikace používá <b>Claude</b> (Anthropic) jako AI aplikačního inženýra: rozumí zadání (text, hlas, fotografie půdorysu), ovládá návrhový engine a 3D model, vysvětluje a píše nabídky. Bez AI funguje <b>offline režim</b> s pravidlovým parserem češtiny.</p>
         ${srv ? `<div class="note-box" style="margin-bottom:10px"><b>Na tomto webu je AI zapnutá</b> – klíč nepotřebujete.${lim ? ` Denní limit ${lim.perIpDay} dotazů na připojení.` : ''} Pokud vložíte vlastní klíč, použije se místo serveru.</div>` : ''}
+        ${!srv && server.reason ? `<div class="note-box" style="margin-bottom:10px;border-color:rgba(250,178,25,.45)"><b>Serverová AI webu není aktivní.</b> ${esc(server.reason)}</div>` : ''}
         <div class="field"><label>Anthropic API klíč${srv ? ' (nepovinné)' : ''}</label>
           <div class="inp"><input id="setKey" type="password" autocomplete="off" spellcheck="false" placeholder="${srv ? 'nechte prázdné – AI běží přes server webu' : 'sk-ant-…'}" value="${esc(s.apiKey)}" /><button class="btn ghost sm" id="setShow" type="button">Zobrazit</button></div>
         </div>

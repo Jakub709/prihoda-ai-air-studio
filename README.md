@@ -38,6 +38,11 @@ nástroje a parametry aplikace, max. 40 požadavků/min na IP, **150 požadavků
 povolené modely `AI_ALLOWED_MODELS` (např. `claude-sonnet-5` pro nižší náklady). Kdo vloží vlastní klíč v Nastavení,
 volá Claude přímo bez limitů webu.
 
+**Nefunguje AI?** Otevřete `https://<váš-web>.netlify.app/api/claude/health` – pole `reason` řekne, co chybí
+(stejná hláška je v aplikaci v Nastavení). Netlify AI Gateway (modely typu gpt‑4.1‑mini v nastavení Netlify) aplikace
+nepoužívá: proxy volá vždy přímo api.anthropic.com a přijme jen vlastní klíč `sk-ant-…`. Web musí být nasazený
+z GitHubu nebo přes Netlify CLI – při přetažení složky (Netlify Drop) se edge funkce nenasadí.
+
 Lokální test nasazení: `npm run build:web`, pak `ANTHROPIC_API_KEY=… npm run serve:local` → http://127.0.0.1:8888.
 
 ## AI konzultant (Claude)

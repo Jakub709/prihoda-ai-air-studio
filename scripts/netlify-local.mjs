@@ -3,7 +3,7 @@
 //
 //   npm run build:web
 //   ANTHROPIC_API_KEY=… npm run serve:local            → http://127.0.0.1:8888
-//   (pro test bez klíče: npm run mock a ANTHROPIC_BASE_URL=http://127.0.0.1:8787 ANTHROPIC_API_KEY=test)
+//   (pro test bez klíče: npm run mock a CLAUDE_PROXY_UPSTREAM=http://127.0.0.1:8787 ANTHROPIC_API_KEY=sk-ant-test)
 import http from 'node:http';
 import { readFile, stat } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';

@@ -11,7 +11,11 @@
 //  – denní limit na IP a denní limit celého webu (Netlify Blobs).
 //
 // Volitelné proměnné prostředí: AI_LIMIT_PER_IP_DAY (výchozí 150), AI_LIMIT_PER_DAY (600),
-// AI_ALLOWED_MODELS (čárkami oddělený seznam), ANTHROPIC_BASE_URL (jen pro lokální testy).
+// AI_ALLOWED_MODELS (čárkami oddělený seznam), CLAUDE_PROXY_UPSTREAM (jen pro lokální testy).
+//
+// Pozor na Netlify AI Gateway: pokud vlastní ANTHROPIC_API_KEY chybí (nebo nemá scope Functions), Netlify
+// sám vloží ANTHROPIC_API_KEY a ANTHROPIC_BASE_URL své brány. Proxy proto volá vždy přímo api.anthropic.com
+// a přijme jen skutečný klíč Anthropic (sk-ant-…); stav ukazuje /api/claude/health.
 import { getStore } from '@netlify/blobs';
 import { systemPrompt } from '../../src/ai/prompts.js';
 
@@ -131,17 +135,33 @@ function sanitize(body) {
 
 // ---------------------------------------------------------------- handler
 
+/** Vlastní klíč Anthropic provozovatele – a proč případně chybí (bez prozrazení klíče). */
+function keyStatus() {
+  const key = (env('ANTHROPIC_API_KEY', '') || '').trim();
+  const gateway = !!env('NETLIFY_AI_GATEWAY_KEY', '');
+  if (!key) return { key: '', reason: 'Chybí proměnná ANTHROPIC_API_KEY (scope musí zahrnovat Functions). Po nastavení je nutný nový deploy.' };
+  if (!key.startsWith('sk-ant-')) {
+    return {
+      key: '',
+      reason: gateway
+        ? 'ANTHROPIC_API_KEY je klíč z Netlify AI Gateway, ne váš klíč Anthropic. Nastavte vlastní klíč (sk-ant-…) se scope Functions a nasaďte znovu.'
+        : 'ANTHROPIC_API_KEY nevypadá jako klíč Anthropic (má začínat sk-ant-).',
+    };
+  }
+  return { key, reason: null };
+}
+
 export default async (request, context) => {
   const url = new URL(request.url);
-  const apiKey = env('ANTHROPIC_API_KEY', '');
+  const { key: apiKey, reason } = keyStatus();
 
   if (url.pathname.endsWith('/health')) {
-    return json({ ai: !!apiKey, models: allowedModels(), limits: limits() });
+    return json({ ai: !!apiKey, reason, models: allowedModels(), limits: limits() });
   }
   if (request.method !== 'POST' || !url.pathname.endsWith('/v1/messages')) {
     return apiError(404, 'not_found_error', 'Neznámý požadavek.');
   }
-  if (!apiKey) return apiError(503, 'api_error', 'AI na tomto webu není nastavena (chybí ANTHROPIC_API_KEY).');
+  if (!apiKey) return apiError(503, 'api_error', `AI na tomto webu není nastavena: ${reason}`);
 
   // jiné weby nesmí proxy volat z prohlížeče
   const origin = request.headers.get('origin');
@@ -182,7 +202,8 @@ export default async (request, context) => {
     .filter((b) => ALLOWED_BETAS.has(b));
   if (betas.length) headers['anthropic-beta'] = betas.join(',');
 
-  const base = env('ANTHROPIC_BASE_URL', 'https://api.anthropic.com').replace(/\/+$/, '');
+  // vždy přímo Anthropic (ANTHROPIC_BASE_URL může nastavit Netlify AI Gateway); jiný cíl jen pro lokální testy
+  const base = (env('CLAUDE_PROXY_UPSTREAM', '') || 'https://api.anthropic.com').replace(/\/+$/, '');
   const beta = url.searchParams.get('beta') === 'true' ? '?beta=true' : '';
   let upstream;
   try {
@@ -190,6 +211,21 @@ export default async (request, context) => {
   } catch (err) {
     console.error('claude upstream', err);
     return apiError(502, 'api_error', 'Claude API je dočasně nedostupné.');
+  }
+  // chyby účtu provozovatele přeložit na srozumitelnou hlášku (429 a 5xx projdou – SDK je zopakuje)
+  if (upstream.status === 400 || upstream.status === 401 || upstream.status === 403) {
+    const text = await upstream.text();
+    let msg = '';
+    try {
+      msg = JSON.parse(text)?.error?.message || '';
+    } catch {
+      /* ne-JSON odpověď */
+    }
+    console.error('claude upstream', upstream.status, msg);
+    if (upstream.status === 401) return apiError(401, 'authentication_error', 'Klíč k Claude API na serveru webu je neplatný. Zkontrolujte ANTHROPIC_API_KEY v Netlify a nasaďte znovu.');
+    if (upstream.status === 403) return apiError(403, 'permission_error', 'Klíč k Claude API na serveru nemá oprávnění k tomuto modelu.');
+    if (/credit balance/i.test(msg)) return apiError(400, 'invalid_request_error', 'Na účtu Anthropic došel kredit. Dobijte ho v Claude Console (Billing) – AI pak začne fungovat bez nového deploye.');
+    return new Response(text, { status: 400, headers: { 'content-type': 'application/json', 'cache-control': 'no-store' } });
   }
   const out = new Headers({ 'cache-control': 'no-store' });
   for (const h of PASS_HEADERS) {
