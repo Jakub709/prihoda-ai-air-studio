@@ -4,8 +4,8 @@
 import Anthropic from '@anthropic-ai/sdk';
 
 export const MODELS = [
-  { id: 'claude-opus-5', name: 'Claude Opus 5', note: 'nejvyšší kvalita (výchozí)' },
-  { id: 'claude-sonnet-5', name: 'Claude Sonnet 5', note: 'rychlejší, levnější' },
+  { id: 'claude-opus-5', name: 'Claude Opus 5', note: 'nejvyšší kvalita' },
+  { id: 'claude-sonnet-5', name: 'Claude Sonnet 5', note: 'rychlejší, levnější (výchozí)' },
   { id: 'claude-haiku-4-5', name: 'Claude Haiku 4.5', note: 'nejrychlejší' },
 ];
 
@@ -42,7 +42,7 @@ export function aiReady(settings) {
 
 /** Model, který se skutečně použije (server může povolit jen některé). */
 export function effectiveModel(settings) {
-  const m = settings.model || 'claude-opus-5';
+  const m = settings.model || 'claude-sonnet-5';
   if (usesServer(settings) && server.models.length && !server.models.includes(m)) return server.models[0];
   return m;
 }

@@ -26,7 +26,7 @@ export const state = {
   layers: { particles: true, heat: 'velocity', people: true, section: false, color: 'temp' },
   settings: {
     apiKey: '',
-    model: 'claude-opus-5',
+    model: 'claude-sonnet-5',
     effort: 'low',
     autoSend: true,
     ...savedSettings,

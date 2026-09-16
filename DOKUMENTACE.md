@@ -390,7 +390,7 @@ Aplikace to uživateli přímo vysvětluje.
 
 | Nastavení | Možnosti |
 |---|---|
-| Model | **Claude Opus 5** (výchozí), Claude Sonnet 5, Claude Haiku 4.5 |
+| Model | **Claude Sonnet 5** (výchozí), Claude Opus 5, Claude Haiku 4.5 |
 | Hloubka uvažování | rychlá (pro demo), vyvážená, důkladná |
 | Záložní model | u Opus 5 zapnutý serverový záložní model pro případ odmítnutí bezpečnostním filtrem |
 | Diktování | volitelně odeslat zadání hned po nadiktování |

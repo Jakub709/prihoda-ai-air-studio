@@ -49,8 +49,8 @@ Lokální test nasazení: `npm run build:web`, pak `ANTHROPIC_API_KEY=… npm ru
 
 Na webu s nastavenou serverovou AI (viz výše) funguje AI bez klíče. Lokálně (soubor HTML, `npm run dev`)
 vpravo nahoře klikněte na **Offline režim → Nastavení**, vložte Anthropic API klíč a uložte. Klíč zůstává jen ve vašem
-prohlížeči (localStorage) a posílá se výhradně na `api.anthropic.com`. Výchozí model je **Claude Opus 5** (lze přepnout
-na Sonnet 5 / Haiku 4.5), s rychlou úrovní uvažování vhodnou pro živé demo. U Opus 5 je zapnutý serverový záložní model
+prohlížeči (localStorage) a posílá se výhradně na `api.anthropic.com`. Výchozí model je **Claude Sonnet 5** (lze přepnout
+na Opus 5 / Haiku 4.5), s rychlou úrovní uvažování vhodnou pro živé demo. U Opus 5 je zapnutý serverový záložní model
 pro případ odmítnutí bezpečnostním filtrem.
 
 AI ovládá aplikaci nástroji: `upravit_projekt` (nastaví/změní parametry a přepočítá fyzikální model),
